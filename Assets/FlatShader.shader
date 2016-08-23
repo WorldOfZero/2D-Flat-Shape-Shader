@@ -1,8 +1,10 @@
-﻿Shader "Custom/FlatShader" {
+﻿Shader "Flat/Simple" {
 	Properties {
-		_Color ("Color", Color) = (1,1,1,1)
-		_MainTex ("Mask", 2D) = "white" {}
-		_Cutoff ("Cutoff", Range(0,1)) = 0.5
+		_ForegroundColor("Foreground Color", Color) = (1,1,1,1)
+		_BackgroundColor("Background Color", Color) = (0,0,0,1)
+		_ForegroundMask ("Foreground Mask", 2D) = "white" {}
+		_ForegroundCutoff ("Foreground Cutoff", Range(0,1)) = 0.5
+		_BackgroundCutoff("Background Cutoff", Range(0,1)) = 0.5
 	}
 	SubShader {
 		Tags { "RenderType"="Opaque" }
@@ -15,22 +17,25 @@
 		// Use shader model 3.0 target, to get nicer looking lighting
 		#pragma target 3.0
 
-		sampler2D _MainTex;
+		sampler2D _ForegroundMask;
 
 		struct Input {
-			float2 uv_MainTex;
+			float2 uv_ForegroundMask;
 		};
 
-		half _Glossiness;
-		half _Metallic;
-		fixed4 _Color;
-		half _Cutoff;
+		fixed4 _ForegroundColor;
+		fixed4 _BackgroundColor;
+		half _ForegroundCutoff;
+		half _BackgroundCutoff;
 
 		void surf (Input IN, inout SurfaceOutputStandard o) {
 			// Albedo comes from a texture tinted by color
-			fixed4 c = tex2D (_MainTex, IN.uv_MainTex);
-			clip(c.r - _Cutoff);
-			o.Albedo = _Color;
+			fixed4 c = tex2D (_ForegroundMask, IN.uv_ForegroundMask);
+			clip(c.r - _BackgroundCutoff);
+			o.Albedo = _BackgroundColor;
+			if (c.r > _ForegroundCutoff) {
+				o.Albedo = _ForegroundColor;
+			}
 			o.Alpha = c.a;
 		}
 		ENDCG
